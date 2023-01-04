@@ -1,0 +1,134 @@
+>>> from news.models import *
+
+		1.Создаем Пользователей
+
+>>> u1=User.objects.create_user(username='Constantin')
+>>> u2=User.objects.create_user(username='Fedor')      
+>>> u3=User.objects.create_user(username='Sam') 
+
+		2.создаем авторов
+
+>>> Author.objects.create(authorUser=u1)
+>>> Author.objects.create(authorUser=u2) 
+>>> Author.objects.create(authorUser=u3)
+
+
+		3.Создаем категории статей
+
+>>> Category.objects.create(name='IT') 
+<Category: Category object (1)>
+>>> Category.objects.create(name='Sport') 
+<Category: Category object (2)>
+>>> Category.objects.create(name='Art')   
+<Category: Category object (3)>
+>>> Category.objects.create(name='Politics')
+<Category: Category object (4)>
+
+		4.Добавляем статьи и новости
+
+>>> author=Author.objects.get(id=1)
+>>> Post.objects.create(author=author, categoryType='NW', title='news words', text='News Today')
+>>> author=Author.objects.get(id=2) 
+ >>> Post.objects.create(author=author, categoryType='AT', title='Sports and art', text='Sports and art, New Word')
+>>> Post.objects.create(author=author, categoryType='NW', title='IT sphere development history', text='IT sphere. History in pictures')
+
+
+		5.Добавляем категории статейи новостей
+
+>>> Post.objects.get(id=1).postCategory.add(Category.objects.get(id=4))
+>>> Post.objects.get(id=2).postCategory.add(Category.objects.get(id=2))
+>>> Post.objects.get(id=2).postCategory.add(Category.objects.get(id=3))
+>>> Post.objects.get(id=3).postCategory.add(Category.objects.get(id=1)) 
+
+
+		6.Создаем комментарии (коментировать может не только автор статей, но и простой пользователь)
+
+
+
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=User.objects.get(id=2), text='WORD,Word,Word') 
+
+или
+
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=Author.objects.get(id=2).authorUser, text='WORD,Word,Word')
+
+>>> Comment.objects.create(commentPost=Post.objects.get(id=1), commentUser=Author.objects.get(id=3).authorUser, text='МИР МИР МИР') 
+>>> Comment.objects.create(commentPost=Post.objects.get(id=2), commentUser=Author.objects.get(id=2).authorUser, text='HeLLo, Word') 
+>>> Comment.objects.create(commentPost=Post.objects.get(id=3), commentUser=User.objects.get(id=4), text='ИТ=SkillFactory')
+
+
+		7. Применяем лайки дизлайки
+
+>>> Post.objects.get(id=1).like()    
+>>> Post.objects.get(id=1).like()  
+>>> Post.objects.get(id=2).like() 
+>>> Post.objects.get(id=2).dislike() 
+>>> Post.objects.get(id=3).like() 
+>>> Post.objects.get(id=3).like()
+>>> Post.objects.get(id=3).like()
+>>> Post.objects.get(id=3).dislike()
+>>> Post.objects.get(id=1).dislike() 
+
+
+>>> Comment.objects.get(id=1).like()                                                                                       
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=1).like()
+>>> Comment.objects.get(id=2).like() 
+>>> Comment.objects.get(id=3).like() 
+>>> Comment.objects.get(id=6).like() 
+>>> Comment.objects.get(id=6).like() 
+>>> Comment.objects.get(id=6).like() 
+>>> Comment.objects.get(id=6).like() 
+>>> Comment.objects.get(id=5).like() 
+
+>>> Comment.objects.get(id=2).dislike()
+>>> Comment.objects.get(id=3).dislike() 
+>>> Comment.objects.get(id=5).dislike()  
+>>> Comment.objects.get(id=6).dislike() 
+>>> Comment.objects.get(id=2).dislike() 
+>>> Comment.objects.get(id=2).dislike()
+
+>>> Comment.objects.get(id=2).rating
+
+		8. Обнавляем рейтинг пользователей
+
+>>> a = Author.objects.get(id=2)
+>>> a.update_rating()            
+>>> a.update_rating()         
+>>> a.ratingAuthor
+8
+
+
+
+		9. Выводим username и рейтинг лучшего пользователя
+
+>>> a = Author.objects.order_by('-ratingAuthor')[:1]
+>>> a
+<QuerySet [<Author: Author object (2)>]>
+>>> for i in a:
+...     i.ratingAuthor
+...     i.authorUser.username
+... 
+8
+'Fedor'
+
+
+			10.Вывести дату добавления, username автора, рейтинг, заголовок и превью лучшей статьи, основываясь на лайках/дислайках к этой статье.
+
+>>> Post.objects.order_by('-rating').values('dataCreation', 'author__authorUser__username', 'rating', 'title', 'text')[0]  
+{'dataCreation': datetime.datetime(2022, 12, 27, 18, 54, 23, 575586, tzinfo=datetime.timezone.utc), 'author__authorUser__username': 'Fedor', 'rating': 2, 'title': 
+'IT sphere development history', 'text': 'IT sphere. History in pictures'}
+
+
+
+			11.Вывести все комментарии (дата, пользователь, рейтинг, текст) к этой статье.
+
+>>> b = Post.objects.order_by('-rating')
+>>> b
+<QuerySet [<Post: Post object (3)>, <Post: Post object (1)>, <Post: Post object (2)>]>
+>>> b = Post.objects.get(id=3)          
+>>> b.comment_set.all()
+<QuerySet [<Comment: Comment object (6)>]>
+>>> b.comment_set.all().values('dataCreation', 'commentUser', 'rating', 'text')
+<QuerySet [{'dataCreation': datetime.datetime(2022, 12, 27, 20, 2, 23, 387805, tzinfo=datetime.timezone.utc), 'commentUser': 4, 'rating': 4, 'text': 'ИТ=SkillFacto
+ry'}]>
+
